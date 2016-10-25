@@ -1,0 +1,10 @@
+name: TownyPlots
+version: ${project.version}
+main: me.jaimemartz.townyplots.TownyPlots
+authors: [MrJaime]
+depend: [Towny]
+
+commands:
+  townyplots:
+    description: Comando principal para TownyPlots
+    permission: townyplots.admin
