@@ -9,8 +9,10 @@ import java.util.stream.Collectors;
 
 public final class TownBlockDiscovery {
     private final Set<TownBlock> blocks = new HashSet<>();
+    private final TownBlock initial;
 
     public TownBlockDiscovery(TownBlock initial) {
+        this.initial = initial;
         WorldCoord coord = initial.getWorldCoord();
 
         TownBlock upper = TownyUtils.getBlock(coord.add(1, 0));
@@ -50,6 +52,20 @@ public final class TownBlockDiscovery {
                 }
             }
         }
+    }
+
+    private static TownBlock[] getAdjacentBlocks(TownBlock block) {
+        WorldCoord coord = block.getWorldCoord();
+        return new TownBlock[] {
+                TownyUtils.getBlock(coord.add(1, 0)),
+                TownyUtils.getBlock(coord.add(-1, 0)),
+                TownyUtils.getBlock(coord.add(0, 1)),
+                TownyUtils.getBlock(coord.add(0, -1))
+        };
+    }
+
+    public TownBlock getInitial() {
+        return initial;
     }
 
     public Set<TownBlock> getBlocks() {

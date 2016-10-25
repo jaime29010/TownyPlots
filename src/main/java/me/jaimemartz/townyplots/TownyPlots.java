@@ -76,31 +76,6 @@ public final class TownyPlots extends JavaPlugin {
         }
     }
 
-    /*
-    public Set<TownBlock> getAdjacentSellingBlocks(TownBlock block) {
-        Set<TownBlock> results = new HashSet<>();
-        while (results.size() < 3) {
-            for (TownBlock other : this.getAdjacentBlocks(block)) {
-                if (other != null && other.isForSale()) {
-                    results.add(other);
-                    block = other;
-                }
-            }
-        }
-        return results;
-    }
-
-    public TownBlock[] getAdjacentBlocks(TownBlock block) {
-        WorldCoord coord = block.getWorldCoord();
-        return new TownBlock[] {
-                TownyUtils.getBlock(coord.add(1, 0)),
-                TownyUtils.getBlock(coord.add(-1, 0)),
-                TownyUtils.getBlock(coord.add(0, 1)),
-                TownyUtils.getBlock(coord.add(0, -1))
-        };
-    }
-    */
-
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         Messager msgr = new Messager(sender);

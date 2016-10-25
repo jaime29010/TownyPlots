@@ -2,14 +2,9 @@ package me.jaimemartz.townyplots;
 
 import com.google.common.collect.Lists;
 import com.palmergames.bukkit.towny.Towny;
-import com.palmergames.bukkit.towny.event.TownAddResidentEvent;
-import com.palmergames.bukkit.towny.event.TownBlockSettingsChangedEvent;
-import com.palmergames.bukkit.towny.exceptions.AlreadyRegisteredException;
 import com.palmergames.bukkit.towny.object.*;
 import com.palmergames.bukkit.towny.tasks.PlotClaim;
-import com.palmergames.bukkit.towny.utils.AreaSelectionUtil;
 import me.jaimemartz.faucet.Messager;
-import me.jaimemartz.faucet.SilentExecutor;
 import me.jaimemartz.townyplots.data.JsonLocation;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -21,11 +16,9 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 public class PlayerListener implements Listener {
     private final TownyPlots plugin;
@@ -59,7 +52,7 @@ public class PlayerListener implements Listener {
                                         Set<WorldCoord> coords = new TownBlockDiscovery(block).getWorldCoords();
 
                                         if (coords.size() < 3) {
-                                            msgr.send("&cNo se te han dado las parcelas adyacentes ya que alguna no esta en venta");
+                                            msgr.send("&cNo se te han dado las parcelas adyacentes ya que alguna no está en venta");
                                             plugin.getLogger().severe(String.format("%s has tried to claim a plot in an unexpected place (%s) coll size %s",
                                                     player.getName(), block.getWorldCoord(), coords.size()
                                             ));
@@ -68,12 +61,12 @@ public class PlayerListener implements Listener {
 
                                         //Start claim task with all the coords
                                         new PlotClaim(JavaPlugin.getPlugin(Towny.class), player, resident, Lists.newArrayList(coords), true).start();
-                                        msgr.send("&bSe te han dado las parcelas adyacentes automaticamente");
+                                        msgr.send("&bSe te han dado las parcelas adyacentes automáticamente");
                                     }
                                 }, 20 * 2);
                             }
                         } else {
-                            msgr.send("&cEres un asistente/alcalde, por lo que no se te han dado las parcelas adyacentes");
+                            msgr.send("&cEres un asistente o alcalde, por lo que no se te han dado las parcelas adyacentes");
                         }
                         break;
                     }
