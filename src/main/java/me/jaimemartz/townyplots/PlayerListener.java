@@ -1,9 +1,7 @@
 package me.jaimemartz.townyplots;
 
-import com.google.common.collect.Lists;
 import com.palmergames.bukkit.towny.Towny;
 import com.palmergames.bukkit.towny.object.*;
-import com.palmergames.bukkit.towny.tasks.PlotClaim;
 import me.jaimemartz.faucet.Messager;
 import me.jaimemartz.townyplots.data.JsonLocation;
 import org.bukkit.Location;
@@ -18,9 +16,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class PlayerListener implements Listener {
+    private final Set<WorldCoord> lockedCoords = ConcurrentHashMap.newKeySet();
     private final TownyPlots plugin;
     public PlayerListener(TownyPlots plugin) {
         this.plugin = plugin;
@@ -47,9 +47,17 @@ public class PlayerListener implements Listener {
                     case "claim": {
                         if (!town.hasAssistant(resident) && !town.isMayor(resident)) {
                             if (town.hasTownBlock(block) && block.isForSale()) {
+                                if (lockedCoords.contains(block.getWorldCoord())) {
+                                    msgr.send("&cEsta parcela esta siendo comprada por otro jugador");
+                                    event.setCancelled(true);
+                                    break;
+                                }
+
+                                Set<WorldCoord> coords = new TownBlockDiscovery(block).getWorldCoords();
+                                lockedCoords.addAll(coords);
+
                                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                                     if (town.hasTownBlock(block) && block.isOwner(resident)) {
-                                        Set<WorldCoord> coords = new TownBlockDiscovery(block).getWorldCoords();
 
                                         if (coords.size() < 3) {
                                             msgr.send("&cNo se te han dado las parcelas adyacentes ya que alguna no está en venta");
@@ -60,8 +68,30 @@ public class PlayerListener implements Listener {
                                         }
 
                                         //Start claim task with all the coords
-                                        new PlotClaim(JavaPlugin.getPlugin(Towny.class), player, resident, Lists.newArrayList(coords), true).start();
-                                        msgr.send("&bSe te han dado las parcelas adyacentes automáticamente");
+                                        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                                            Towny plugin = JavaPlugin.getPlugin(Towny.class);
+                                            coords.forEach(coord -> {
+                                                TownBlock other = TownyUtils.getBlock(coord);
+                                                if (other != null) {
+                                                    other.setPlotPrice(-1.0D);
+                                                    other.setType(TownBlockType.RESIDENTIAL);
+                                                    other.setResident(resident);
+
+                                                    TownyUniverse.getDataSource().saveResident(resident);
+                                                    TownyUniverse.getDataSource().saveTownBlock(other);
+                                                    plugin.updateCache(coord);
+                                                }
+                                            });
+
+                                            TownyUniverse.getDataSource().saveResident(resident); //Save the resident again, not sure why, towny does it.
+                                            plugin.resetCache();
+
+                                            //OLD METHOD:
+                                            // new PlotClaim(JavaPlugin.getPlugin(Towny.class), player, resident, Lists.newArrayList(coords), true).start();
+
+                                            lockedCoords.removeAll(coords);
+                                            msgr.send("&bSe te han dado las parcelas adyacentes automáticamente");
+                                        });
                                     }
                                 }, 20 * 2);
                             }
@@ -111,7 +141,7 @@ public class PlayerListener implements Listener {
                             64,
                             target.getZ() * 16);
                     player.teleport(location);
-                    msgr.send("&aHas sido teletransportado a una de tus parcelas");
+                    msgr.send("&aHas sido transportado a una de tus parcelas");
                 } else {
                     msgr.send("&cEste cartel solo puede ser usado por residentes de esta ciudad");
                 }
